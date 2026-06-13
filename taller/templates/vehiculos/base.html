@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block Titulo %}Registro de Vehículos{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- CSS propio -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <style>
+        .navbar-brand{
+            font-weight: 600;
+            letter-spacing: .5px;
+        }
+
+        .search-box{
+            min-width: 280px;
+        }
+
+        @media (max-width: 991px){
+            .search-box{
+                width: 100%;
+                margin: 15px 0;
+            }
+
+            .navbar-buttons{
+                margin-top: 15px;
+                width: 100%;
+            }
+
+            .navbar-buttons .btn{
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="bg-dark text-white shadow">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+        <div class="container-fluid">
+
+            <a class="navbar-brand" href="{% url 'principal_tecni' %}">
+                <i class="bi bi-car-front-fill"></i>
+                Elite Car Services
+            </a>
+
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarMenu"
+                aria-controls="navbarMenu"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+
+                <span class="navbar-toggler-icon"></span>
+
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMenu">
+
+                <!-- Menú principal -->
+                <ul class="navbar-nav">
+
+                    <!-- CLIENTES -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown">
+
+                            Clientes
+
+                        </a>
+
+                        <ul class="dropdown-menu">
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="{% url 'crear' %}">
+                                    <i class="bi bi-person-plus"></i>
+                                    Registrar Cliente
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="{% url 'lista' %}">
+                                    <i class="bi bi-card-list"></i>
+                                    Lista Clientes
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                    <!-- TAREAS -->
+                    <li class="nav-item dropdown">
+
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown">
+
+                            Tareas
+
+                        </a>
+
+                        <ul class="dropdown-menu">
+
+                            <li>
+                                <a class="dropdown-item"
+                                   href="{% url 'lista_tareas' %}">
+                                    <i class="bi bi-list-check"></i>
+                                    Lista de Tareas
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </li>
+
+                </ul>
+                
+            <!-- Buscador -->
+                {% if request.resolver_match.url_name == 'lista' or request.resolver_match.url_name == 'lista_tareas' %}
+                <form class="d-flex mx-auto"
+                    method="GET"
+                    action="{% if request.resolver_match.url_name == 'lista_tareas' %}{% url 'lista_tareas' %}{% else %}{% url 'lista' %}{% endif %}">
+
+                    <div class="input-group" style="min-width:300px; max-width:400px;">
+
+                        <input
+                            type="search"
+                            name="q"
+                            value="{{ busqueda }}"
+                            class="form-control"
+                            placeholder="{% if request.resolver_match.url_name == 'lista_tareas' %}Buscar tarea...{% else %}Buscar vehículo...{% endif %}">
+
+                        <button class="btn btn-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+
+                    </div>
+
+                </form>
+                {% endif %}
+
+                <!-- Botones derecha -->
+                <div class="d-flex gap-2 ms-auto">
+
+                    <a href="{% url 'principal_tecni' %}" class="btn btn-light">
+                        <i class="bi bi-house-door-fill"></i>
+                        Inicio
+                    </a>
+
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Salir
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+
+    </nav>
+
+</header>
+
+<!-- Contenido -->
+<div class="container mt-4">
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-5">
+
+    <div class="container py-4">
+
+        <div class="row">
+
+            <div class="col-md-4 mb-3">
+                <h5>
+                    <i class="bi bi-building"></i>
+                    Empresa
+                </h5>
+                <p>
+                    Información general de la empresa.
+                </p>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <h5>
+                    <i class="bi bi-people"></i>
+                    Clientes
+                </h5>
+                <p>
+                    Información relacionada con clientes.
+                </p>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <h5>
+                    <i class="bi bi-truck"></i>
+                    Proveedores
+                </h5>
+                <p>
+                    Información relacionada con proveedores.
+                </p>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <div class="text-center">
+            © {% now "Y" %} Elite Car Services - Todos los derechos reservados.
+        </div>
+
+    </div>
+
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

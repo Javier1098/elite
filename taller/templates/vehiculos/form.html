@@ -1,0 +1,381 @@
+{% extends 'vehiculos/base.html' %}
+
+{% block content %}
+
+<style>
+    .is-invalid{
+        border: 2px solid #dc3545 !important;
+        background-color: #fff5f5 !important;
+        box-shadow: 0 0 0 .25rem rgba(220,53,69,.25);
+    }
+
+    .text-danger{
+        color: #dc3545 !important;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .text-danger ul{
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .card{
+        border-radius: 15px;
+    }
+
+    .form-label{
+        font-weight: 600;
+    }
+
+    input:disabled,
+    select:disabled,
+    textarea:disabled {
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed;
+    opacity: 1;
+    font-weight: 600;
+}
+
+input[type="file"]:disabled {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+}
+
+.modal-content{
+    border-radius: 15px;
+}
+
+.modal-header{
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.modal-footer{
+    border-top: 0;
+}
+
+    
+</style>
+
+<div class="container mt-4">
+    <div class="card shadow p-4">
+
+        <h2 class="mb-4 text-center">
+            🚗 Registro de Vehículo
+        </h2>
+
+        <form id="vehiculoForm" method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>⚠ Corrija los campos resaltados en rojo.</strong>
+            </div>
+            {% endif %}
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Placa</label>
+                    {{ form.placa }}
+                    {% if form.placa.errors %}
+                        <div class="text-danger">{{ form.placa.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Marca</label>
+                    {{ form.marca }}
+                    {% if form.marca.errors %}
+                        <div class="text-danger">{{ form.marca.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Modelo</label>
+                    {{ form.modelo }}
+                    {% if form.modelo.errors %}
+                        <div class="text-danger">{{ form.modelo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Color</label>
+                    {{ form.color }}
+                    {% if form.color.errors %}
+                        <div class="text-danger">{{ form.color.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Propietario</label>
+                    {{ form.propietario }}
+                    {% if form.propietario.errors %}
+                        <div class="text-danger">{{ form.propietario.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Identificación</label>
+                    {{ form.ID }}
+                    {% if form.ID.errors %}
+                        <div class="text-danger">{{ form.ID.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Telefono</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                        <div class="text-danger">{{ form.telefono.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    {{ form.Correo }}
+                    {% if form.Correo.errors %}
+                        <div class="text-danger">{{ form.Correo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Fecha de Ingreso</label>
+                    {{ form.fecha_ingreso }}
+                    {% if form.fecha_ingreso.errors %}
+                        <div class="text-danger">{{ form.fecha_ingreso.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Diagnóstico</label>
+                    {{ form.diagnostico }}
+                    {% if form.diagnostico.errors %}
+                        <div class="text-danger">{{ form.diagnostico.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-12 mb-4">
+                    <label class="form-label">Imagen</label>
+                    {{ form.imagen }}
+                    {% if form.imagen.errors %}
+                        <div class="text-danger">{{ form.imagen.errors }}</div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-success px-4">
+                    💾 Guardar
+                </button>
+
+                <a href="{% url 'lista' %}" class="btn btn-secondary px-4">
+                    ↩ Volver
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<!-- Modal Confirmación -->
+<div class="modal fade" id="confirmarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    🚗 Confirmar modificación
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <p class="mb-2">
+                    Está a punto de guardar cambios en el vehículo:
+                </p>
+
+                <div class="alert alert-light border">
+                    <strong>Placa:</strong>
+                    <span id="placaModal"></span>
+                </div>
+
+                <p class="text-muted mb-0">
+                    ¿Desea continuar con la modificación?
+                </p>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button "
+                        id="btnConfirmarGuardar"
+                        class="btn btn-success">
+                    💾 Guardar Cambios
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+const esEdicion = {{ es_edicion|yesno:"true,false" }};
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.getElementById('vehiculoForm');
+    const campos = form.querySelectorAll('input, select, textarea');
+
+    let envioConfirmado = false;
+
+    campos.forEach(function(campo){
+
+        campo.addEventListener('blur', function(){
+
+            if(
+                this.type !== 'file' &&
+                this.name !== 'csrfmiddlewaretoken' &&
+                !this.disabled
+            ){
+
+                if(this.value.trim() === ''){
+                    this.classList.add('is-invalid');
+                }else{
+                    this.classList.remove('is-invalid');
+                }
+            }
+
+            if(
+                this.type === 'email' &&
+                this.value.trim() !== ''
+            ){
+
+                const regex =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if(!regex.test(this.value)){
+                    this.classList.add('is-invalid');
+                }else{
+                    this.classList.remove('is-invalid');
+                }
+            }
+
+        });
+
+    });
+
+    form.addEventListener('submit', function(e){
+
+        if(envioConfirmado){
+            return;
+        }
+
+        e.preventDefault();
+
+        let errores = false;
+
+        campos.forEach(function(campo){
+
+            campo.classList.remove('is-invalid');
+
+            if(
+                campo.name === 'csrfmiddlewaretoken' ||
+                campo.disabled
+            ){
+                return;
+            }
+
+            if(
+                campo.type !== 'file' &&
+                campo.value.trim() === ''
+            ){
+                campo.classList.add('is-invalid');
+                errores = true;
+            }
+
+            if(
+                campo.type === 'email' &&
+                campo.value.trim() !== ''
+            ){
+
+                const regex =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if(!regex.test(campo.value)){
+                    campo.classList.add('is-invalid');
+                    errores = true;
+                }
+            }
+
+        });
+
+        if(errores){
+
+            alert(
+                'Por favor complete correctamente los campos resaltados en rojo.'
+            );
+
+            const primerError =
+                document.querySelector('.is-invalid');
+
+            if(primerError){
+                primerError.focus();
+            }
+
+            return;
+        }
+
+        if(!esEdicion){
+            envioConfirmado = true;
+            form.submit();
+            return;
+        }
+
+        
+
+        const placaInput =
+            document.getElementById('id_placa');
+
+        document.getElementById('placaModal').textContent =
+            placaInput ? placaInput.value : '';
+
+        const modal =
+            new bootstrap.Modal(
+                document.getElementById('confirmarModal')
+            );
+
+        modal.show();
+
+    });
+
+    document
+        .getElementById('btnConfirmarGuardar')
+        .addEventListener('click', function(){
+
+            envioConfirmado = true;
+            form.submit();
+
+        });
+
+});
+</script>
+
+
+{% endblock %}

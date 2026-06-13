@@ -1,0 +1,195 @@
+/*base tecnicos y base admin*/
+
+body{
+    overflow-x:hidden;
+    background:#e7e5e5;
+}
+
+.wrapper{
+    display:flex;
+}
+
+#sidebar{
+    min-width:250px;
+    max-width:250px;
+    min-height:100vh;
+    background:#212529;
+    color:white;
+    transition:.3s;
+}
+
+#sidebar.active{
+    margin-left:-250px;
+}
+
+.sidebar-header{
+    padding:20px;
+    text-align:center;
+    background:#1a1d20;
+}
+
+#sidebar ul li{
+    padding:10px;
+}
+
+#sidebar ul li a{
+    color:white;
+    text-decoration:none;
+    display:block;
+}
+
+#sidebar ul li a:hover{
+    background:#0d6efd;
+    border-radius:5px;
+}
+
+#content{
+    width:100%;
+}
+
+.avatar{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    border:3px solid white;
+}
+
+/* fin base tecnicos y base admin */
+
+
+
+/*Estilos del archivo principal_tecni y principal_admin */
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f5f7fa;
+}
+
+.hero{
+    position:relative;
+}
+
+.slider-container{
+    position:relative;
+    overflow:hidden;
+    height:650px;
+}
+
+.slide img{
+    width:100%;
+    height:650px;
+    object-fit:cover;
+}
+
+.hero-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    color:white;
+}
+
+.hero-overlay h1{
+    font-size:4rem;
+    margin-bottom:15px;
+}
+
+.hero-overlay p{
+    font-size:1.3rem;
+    max-width:700px;
+}
+
+.btn-principal{
+    margin-top:25px;
+    padding:15px 30px;
+    background:#0d6efd;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    transition:.3s;
+}
+
+.btn-principal:hover{
+    background:#084298;
+}
+
+.nosotros{
+    max-width:1200px;
+    margin:80px auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+    gap:30px;
+}
+
+.card{
+    background:white;
+    padding:40px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.card h2{
+    color:#0d6efd;
+    margin-bottom:20px;
+}
+
+.servicios{
+    padding:80px 20px;
+    text-align:center;
+}
+
+.servicios h2{
+    margin-bottom:50px;
+    font-size:2.5rem;
+}
+
+.servicios-grid{
+    max-width:1200px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:25px;
+}
+
+.servicio{
+    background:white;
+    padding:35px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.estadisticas{
+    background:#0d6efd;
+    color:white;
+    display:flex;
+    justify-content:center;
+    gap:100px;
+    padding:60px 20px;
+    margin-top:80px;
+}
+
+.dato h3{
+    font-size:3rem;
+}
+
+.dato{
+    text-align:center;
+}
+
+
+.is-invalid{
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5 !important;
+}
+
+.errorlist{
+    color: #dc3545;
+    list-style: none;
+    padding: 0;
+    margin-top: 5px;
+    font-size: 14px;
+}

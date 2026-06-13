@@ -1,0 +1,69 @@
+{% extends 'administrativo/base_admin.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🗑 Historial de Vehículos Eliminados</h2>
+
+        <a href="{% url 'lista' %}" class="btn btn-secondary">
+            Volver
+        </a>
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Placa</th>
+                    <th>Motivo</th>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for item in historial %}
+                <tr>
+
+                    <td>{{ forloop.counter }}</td>
+
+                    <td>
+                        <strong>{{ item.placa }}</strong>
+                    </td>
+
+                    <td>
+                        {{ item.motivo }}
+                    </td>
+
+                    <td>
+                        {{ item.usuario.username }}
+                    </td>
+
+                    <td>
+                        {{ item.fecha|date:"d/m/Y H:i" }}
+                    </td>
+
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">
+                        No existen registros de vehículos eliminados.
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

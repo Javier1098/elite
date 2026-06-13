@@ -1,0 +1,75 @@
+{% extends 'administrativo/base_admin.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>Informe de Tareas Finalizadas</h2>
+
+    <form method="GET" action="{% url 'informe_pdf' %}">
+
+        <div class="row">
+
+            <div class="col-md-3">
+                <label>Placa</label>
+                <input
+                    type="text"
+                    name="placa"
+                    class="form-control">
+            </div>
+
+            <div class="col-md-3">
+                <label>Cliente</label>
+                <input
+                    type="text"
+                    name="cliente"
+                    class="form-control">
+            </div>
+
+            <div class="col-md-3">
+                <label>Fecha Inicial</label>
+                <input
+                    type="date"
+                    name="fecha_inicio"
+                    class="form-control">
+            </div>
+
+            <div class="col-md-3">
+                <label>Fecha Final</label>
+                <input
+                    type="date"
+                    name="fecha_fin"
+                    class="form-control">
+            </div>
+
+        </div>
+
+        <br>
+
+        <div class="mt-4">
+
+            <button
+                type="submit"
+                formaction="{% url 'informe_pdf' %}"
+                class="btn btn-danger">
+                
+            Descargar PDF
+
+            </button>
+
+            <button
+                type="submit"
+                formaction="{% url 'informe_excel' %}"
+                class="btn btn-success">
+
+                Descargar Excel
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

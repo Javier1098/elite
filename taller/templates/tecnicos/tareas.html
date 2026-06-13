@@ -1,0 +1,74 @@
+{% extends 'vehiculos/base.html' %}
+
+{% block content %}
+
+<h2>Tareas</h2>
+
+
+<br><br>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Placa</th>
+            <th>Tarea</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for tarea in tareas %}
+
+        <tr>
+
+            <td>{{ tarea.vehiculo.placa }}</td>
+
+            <td>{{ tarea.descripcion }}</td>
+
+            <td>
+                {% if tarea.estado == 'Pendiente' %}
+                    <span class="badge bg-warning">
+                        Pendiente
+                    </span>
+                {% elif tarea.estado == 'En Proceso' %}
+                    <span class="badge bg-info">
+                        En Proceso
+                    </span>
+
+                {% else %}
+                    <span class="badge bg-success">
+                        Finalizada
+                    </span>
+
+                {% endif %}
+            </td>
+
+            <td>{{ tarea.fecha_creacion }}</td>
+
+            <td>
+
+                <a href="{% url 'editar_tarea' tarea.id %}"
+                   class="btn btn-warning">
+                    Editar
+                </a>
+
+                <a href="{% url 'eliminar_tarea' tarea.id %}"
+                   class="btn btn-danger">
+                    Eliminar
+                </a>
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

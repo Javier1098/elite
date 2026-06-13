@@ -1,0 +1,355 @@
+{% extends "vehiculos/base.html" %}
+{% load static %}
+
+{% block Titulo %}GRUPO ELITE{% endblock %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ==========================
+SLIDER
+========================== */
+
+.banner{
+    padding: 20px;
+}
+
+.slider-container{
+    position: relative;
+    overflow: hidden;
+    border-radius: 25px;
+    height: 450px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.20);
+}
+
+.slider{
+    display: flex;
+}
+
+.slide{
+    min-width: 100%;
+    position: relative;
+}
+
+.slide img{
+    width: 100%;
+    height: 450px;
+    object-fit: cover;
+    animation: zoom 12s infinite;
+}
+
+@keyframes zoom{
+    0%{
+        transform: scale(1);
+    }
+    50%{
+        transform: scale(1.08);
+    }
+    100%{
+        transform: scale(1);
+    }
+}
+
+.slide::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        90deg,
+        rgba(0,0,0,.75),
+        rgba(0,0,0,.35),
+        rgba(0,0,0,.10)
+    );
+    z-index:1;
+}
+
+.slide-content{
+    position:absolute;
+    top:50%;
+    left:6%;
+    transform:translateY(-50%);
+    z-index:2;
+    color:white;
+    max-width:550px;
+}
+
+.slide-content h1{
+    font-size:2.5rem;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+.slide-content p{
+    font-size:1rem;
+    line-height:1.7;
+    margin-bottom:20px;
+}
+
+.btn-slider{
+    display:inline-block;
+    padding:12px 28px;
+    background:#0d6efd;
+    color:white;
+    text-decoration:none;
+    border-radius:50px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-slider:hover{
+    background:#084298;
+    transform:translateY(-3px);
+}
+
+/* ==========================
+   BOTONES
+========================== */
+
+.prev,
+.next{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:50px;
+    height:50px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.20);
+    backdrop-filter:blur(10px);
+    color:white;
+    font-size:24px;
+    cursor:pointer;
+    z-index:10;
+    transition:.3s;
+}
+
+.prev{
+    left:20px;
+}
+
+.next{
+    right:20px;
+}
+
+.prev:hover,
+.next:hover{
+    background:#0d6efd;
+}
+
+/* ==========================
+   DOTS
+========================== */
+
+.dots-container{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:15px;
+}
+
+.dot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:#c5c5c5;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.dot.active{
+    width:35px;
+    border-radius:20px;
+    background:#0d6efd;
+}
+
+/* ==========================
+   MISION Y VISION
+========================== */
+
+.info-cards{
+    max-width:1200px;
+    margin:60px auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+    gap:30px;
+    padding:0 20px;
+}
+
+.vision,
+.mision{
+    background:white;
+    padding:40px;
+    border-radius:25px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
+    transition:.4s;
+}
+
+.vision:hover,
+.mision:hover{
+    transform:translateY(-10px);
+    box-shadow:0 25px 50px rgba(0,0,0,.15);
+}
+
+.vision::before,
+.mision::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:6px;
+    background:linear-gradient(90deg,#0d6efd,#00b4ff);
+}
+
+.icono{
+    font-size:55px;
+    margin-bottom:15px;
+}
+
+.vision h2,
+.mision h2{
+    color:#0d6efd;
+    font-weight:700;
+    margin-bottom:20px;
+}
+
+.vision p,
+.mision p{
+    color:#555;
+    line-height:1.9;
+    text-align:justify;
+    font-size:16px;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media(max-width:768px){
+
+    .slider-container,
+    .slide img{
+        height:300px;
+    }
+
+    .slide-content{
+        left:20px;
+        right:20px;
+        max-width:100%;
+    }
+
+    .slide-content h1{
+        font-size:1.6rem;
+    }
+
+    .slide-content p{
+        font-size:.9rem;
+        margin-bottom:10px;
+    }
+
+    .btn-slider{
+        padding:10px 20px;
+        font-size:14px;
+    }
+
+    .info-cards{
+        grid-template-columns:1fr;
+    }
+}
+
+</style>
+
+<section class="banner">
+
+    <div class="slider-container">
+
+        <div class="slider">
+
+            <div class="slide">
+                <img src="https://static.retail.autofact.cl/blog/c_img_740x370.lgd1kfsgk70b.jpg" alt="Servicio automotriz">
+                <div class="slide-content">
+                    <h1>Expertos en Servicio Automotriz</h1>
+                    <p>
+                        Tecnología, experiencia y compromiso para mantener tu
+                        vehículo en óptimas condiciones.
+                    </p>
+                    <a href="#" class="btn-slider">Conocer Más</a>
+                </div>
+            </div>
+
+            <div class="slide">
+                <img src="https://proautos.com.co/wp-content/uploads/2019/05/foto_index.jpg" alt="Taller automotriz">
+            </div>
+
+            <div class="slide">
+                <img src="https://asopartes.com/wp-content/uploads/2023/07/Taller-Mecanico-.png" alt="Mantenimiento">
+            </div>
+
+            <div class="slide">
+                <img src="https://static6.depositphotos.com/1003098/662/i/450/depositphotos_6620522-stock-photo-car-repair-shop.jpg" alt="Reparación">
+            </div>
+
+            <div class="slide">
+                <img src="https://www.racc.es/wp-content/uploads/2018/06/taller-mecanico.jpg" alt="Técnicos especializados">
+            </div>
+
+            <div class="slide">
+                <img src="https://www.dimasaford.com/wp-content/uploads/Mantenimiento-Preventivo.jpg" alt="Mantenimiento preventivo">
+            </div>
+
+        </div>
+
+        <button class="prev">&#10094;</button>
+        <button class="next">&#10095;</button>
+
+    </div>
+
+    <div class="dots-container">
+        <span class="dot active"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+    </div>
+
+</section>
+
+<section class="info-cards">
+
+    <div class="vision">
+        <div class="icono">🎯</div>
+        <h2>VISIÓN</h2>
+        <p>
+            Ser una empresa líder en servicios de mantenimiento y reparación
+            automotriz, reconocida por la excelencia, innovación y confianza,
+            aportando soluciones integrales que generen valor para nuestros
+            clientes.
+        </p>
+    </div>
+
+    <div class="mision">
+        <div class="icono">🚗</div>
+        <h2>MISIÓN</h2>
+        <p>
+            Brindar servicios automotrices de alta calidad mediante personal
+            capacitado, tecnología moderna y procesos eficientes,
+            garantizando seguridad, confiabilidad y satisfacción en cada
+            intervención realizada.
+        </p>
+    </div>
+
+</section>
+
+<script src="{% static 'js/banner.js' %}"></script>
+
+{% endblock %}
