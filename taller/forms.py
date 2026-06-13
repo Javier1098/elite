@@ -184,4 +184,6 @@ class TareaForm(forms.ModelForm):
             'estado': forms.Select(attrs={
                 'class': 'form-control'
             }),
+            
+            
         }

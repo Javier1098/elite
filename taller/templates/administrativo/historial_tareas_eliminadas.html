@@ -1,0 +1,35 @@
+{% extends 'administrativo/base_admin.html' %}
+
+{% block content %}
+
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            <th>Vehículo</th>
+            <th>Tarea</th>
+            <th>Motivo</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for t in tareas %}
+
+        <tr>
+            <td>{{ t.vehiculo }}</td>
+            <td>{{ t.descripcion }}</td>
+            <td>{{ t.motivo }}</td>
+            <td>{{ t.usuario }}</td>
+            <td>{{ t.fecha }}</td>
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

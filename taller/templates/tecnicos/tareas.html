@@ -15,6 +15,7 @@
             <th>Tarea</th>
             <th>Estado</th>
             <th>Fecha</th>
+            
             <th>Acciones</th>
         </tr>
     </thead>
@@ -56,10 +57,13 @@
                     Editar
                 </a>
 
-                <a href="{% url 'eliminar_tarea' tarea.id %}"
-                   class="btn btn-danger">
+                <button
+                    type="button"
+                    class="btn btn-danger btnEliminar"
+                    data-id="{{ tarea.id }}"
+                    data-descripcion="{{ tarea.descripcion }}">
                     Eliminar
-                </a>
+                </button>
 
             </td>
 
@@ -70,5 +74,103 @@
     </tbody>
 
 </table>
+
+
+
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form method="post" id="formEliminar">
+
+                {% csrf_token %}
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Eliminar tarea
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p id="textoEliminar"></p>
+
+                    <label class="form-label">
+                        Motivo de eliminación
+                    </label>
+
+                    <textarea
+                        name="motivo"
+                        class="form-control"
+                        required
+                        rows="4"></textarea>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function(){
+
+    const modal = new bootstrap.Modal(
+        document.getElementById('modalEliminar')
+    );
+
+    document.querySelectorAll('.btnEliminar')
+        .forEach(function(btn){
+
+            btn.addEventListener('click', function(){
+
+                const id = this.dataset.id;
+                const descripcion = this.dataset.descripcion;
+
+                document.getElementById('textoEliminar')
+                    .innerHTML =
+                    '¿Está seguro de eliminar la tarea:<br><strong>' +
+                    descripcion +
+                    '</strong>?';
+
+                document.getElementById('formEliminar')
+                    .action = '/tareas/eliminar/' + id + '/';
+
+                modal.show();
+
+            });
+
+        });
+
+});
+</script>
 
 {% endblock %}

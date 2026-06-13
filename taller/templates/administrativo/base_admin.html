@@ -124,7 +124,7 @@
                             {% if user.is_authenticated and user.groups.all %}
                             <a class="dropdown-item"
                             href="{% url 'historial_eliminados' %}">
-                                🗑 Historial Eliminados
+                                🗑 Clientes Eliminados
                             </a>
                             {% endif %}
                         </li>
@@ -133,6 +133,13 @@
                             <a class="dropdown-item"
                             href="{% url 'lista_clientes_admin' %}">
                                 👥 Lista de Clientes    
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item"
+                            href="{% url 'lista_tareas_eliminadas' %}">
+                                🗑 Tareas Eliminadas    
                             </a>
                         </li>
 
@@ -175,32 +182,56 @@
 </div>
 
 <br><br>
+<!-- Footer -->
 <footer class="bg-dark text-white mt-5">
+
     <div class="container py-4">
 
         <div class="row">
 
-            <div class="col-md-4">
-                <h5>Empresa</h5>
-                <p>Información general de la empresa.</p>
+            <div class="col-md-4 mb-3">
+                <h5>
+                    <i class="bi bi-building"></i>
+                    Empresa
+                </h5>
+                <p>
+                    Información general de la empresa.
+                </p>
             </div>
 
-            <div class="col-md-4">
-                <h5>Clientes</h5>
-                <p>Información relacionada con clientes.</p>
+            <div class="col-md-4 mb-3">
+                <h5>
+                    <i class="bi bi-people"></i>
+                    Clientes
+                </h5>
+                <p>
+                    Información relacionada con clientes.
+                </p>
             </div>
 
-            <div class="col-md-4">
-                <h5>Proveedores</h5>
-                <p>Información relacionada con proveedores.</p>
+            <div class="col-md-4 mb-3">
+                <h5>
+                    <i class="bi bi-truck"></i>
+                    Proveedores
+                </h5>
+                <p>
+                    Información relacionada con proveedores.
+                </p>
             </div>
 
         </div>
 
+        <hr>
+
+        <div class="text-center">
+            © {% now "Y" %} Elite Car Services - Todos los derechos reservados.
+        </div>
+
     </div>
+
 </footer>
 
-
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

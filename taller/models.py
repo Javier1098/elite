@@ -96,7 +96,32 @@ class Tarea(models.Model):
         default='Pendiente'
     )
     
+    
 
 
     def __str__(self):
         return f"{self.vehiculo.placa} - {self.estado} - {self.descripcion}"
+    
+    
+#Tareas eliminadas
+
+class TareaEliminada(models.Model):
+
+    vehiculo = models.CharField(max_length=20)
+
+    descripcion = models.CharField(max_length=255)
+
+    estado = models.CharField(max_length=20)
+
+    motivo = models.TextField()
+
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.descripcion} - {self.fecha}"

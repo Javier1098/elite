@@ -2,18 +2,193 @@
 
 {% block content %}
 
-<h2>Tarea</h2>
+<div class="container mt-4">
 
-<form method="POST">
+    <h2 class="mb-4">
+        {% if editar %}
+            Editar Tarea
+        {% else %}
+            Nueva Tarea
+        {% endif %}
+    </h2>
 
-    {% csrf_token %}
+    <form method="post" id="tareaForm">
 
-    {{ form.as_p }}
+        {% csrf_token %}
 
-    <button type="submit" class="btn btn-success">
-        Guardar
-    </button>
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-</form>
+                {% for field in form %}
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                            <div class="text-danger mt-1">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            <div class="card-footer">
+
+                <button type="submit" class="btn btn-success">
+                    {% if editar %}
+                        💾 Guardar cambios
+                    {% else %}
+                        ➕ Crear tarea
+                    {% endif %}
+                </button>
+
+                <a href="{% url 'lista_tareas' %}"
+                   class="btn btn-secondary">
+                    ↩ Volver
+                </a>
+
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+{% if editar %}
+
+<!-- Modal Confirmación -->
+<div class="modal fade"
+     id="confirmarGuardarModal"
+     tabindex="-1"
+     aria-labelledby="confirmarGuardarModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title"
+                    id="confirmarGuardarModalLabel">
+                    Confirmar cambios
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+                ¿Desea guardar los cambios realizados en esta tarea?
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-success"
+                        id="btnConfirmarGuardar">
+                    Sí, guardar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.getElementById('tareaForm');
+
+    const modal = new bootstrap.Modal(
+        document.getElementById('confirmarGuardarModal')
+    );
+
+    let envioConfirmado = false;
+
+    const valoresOriginales = {};
+
+    form.querySelectorAll('input, select, textarea').forEach(campo => {
+
+        if (
+            campo.type !== 'hidden' &&
+            campo.name !== 'csrfmiddlewaretoken'
+        ) {
+            valoresOriginales[campo.name] = campo.value;
+        }
+
+    });
+
+    form.addEventListener('submit', function (e) {
+
+        if (envioConfirmado) {
+            return;
+        }
+
+        let hayCambios = false;
+
+        form.querySelectorAll('input, select, textarea').forEach(campo => {
+
+            if (
+                campo.type !== 'hidden' &&
+                campo.name !== 'csrfmiddlewaretoken'
+            ) {
+
+                if (campo.value !== valoresOriginales[campo.name]) {
+                    hayCambios = true;
+                }
+
+            }
+
+        });
+
+        if (!hayCambios) {
+
+            e.preventDefault();
+
+            alert('No se detectaron cambios para guardar.');
+
+            return;
+        }
+
+        e.preventDefault();
+        modal.show();
+
+    });
+
+    document.getElementById('btnConfirmarGuardar')
+        .addEventListener('click', function () {
+
+            envioConfirmado = true;
+            modal.hide();
+            form.submit();
+
+        });
+
+});
+
+</script>
+
+{% endif %}
 
 {% endblock %}

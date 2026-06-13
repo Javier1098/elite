@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vehiculo, Tarea
+from .models import Vehiculo, Tarea, TareaEliminada
 from .forms import TareaForm
 from .forms import VehiculoForm
 from django.contrib.auth import authenticate, login, logout
@@ -172,7 +172,8 @@ def crear_tarea(request):
     return render(
         request,
         'tecnicos/form_tarea.html',
-        {'form': form}
+        {'form': form,
+         'editar':False}
     )
 
 @login_required
@@ -218,26 +219,27 @@ def eliminar_tarea(request, id):
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
-def buscar_por_placa(request):
+def eliminar_tarea(request, id):
 
-    tareas = []
+    tarea = get_object_or_404(Tarea, id=id)
 
-    placa = request.GET.get('placa')
+    if request.method == 'POST':
 
-    if placa:
+        motivo = request.POST.get('motivo')
 
-        tareas = Tarea.objects.filter(
-            vehiculo__placa__icontains=placa
+        TareaEliminada.objects.create(
+            vehiculo=tarea.vehiculo.placa,
+            descripcion=tarea.descripcion,
+            estado=tarea.estado,
+            motivo=motivo,
+            usuario=request.user
         )
 
-    return render(
-        request,
-        'tecnicos/buscar_placa.html',
-        {
-            'tareas': tareas,
-            'placa': placa
-        }
-    )
+        tarea.delete()
+
+        return redirect('lista_tareas')
+
+    return redirect('lista_tareas')
     
 #Funciones administrativos
 
@@ -630,4 +632,20 @@ def lista_vehiculos_admin(request):
             'vehiculos': vehiculos,
             'busqueda': busqueda
         }
+    )
+
+#lista de tareas eliminadas
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
+def historial_tareas_eliminadas(request):
+
+    tareas = TareaEliminada.objects.select_related(
+        'usuario'
+    ).order_by('-fecha')
+
+    return render(
+        request,
+        'administrativo/historial_tareas_eliminadas.html',
+        {'tareas': tareas}
     )
