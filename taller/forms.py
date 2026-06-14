@@ -166,9 +166,9 @@ class TareaForm(forms.ModelForm):
         model = Tarea
 
         fields = [
-            'vehiculo',
+            
             'descripcion',
-            'estado'
+            'estado',
         ]
 
         widgets = {
@@ -184,6 +184,7 @@ class TareaForm(forms.ModelForm):
             'estado': forms.Select(attrs={
                 'class': 'form-control'
             }),
+        
             
             
         }

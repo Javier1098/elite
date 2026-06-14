@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -19,7 +20,48 @@
     <!-- CSS propio -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
+
+
     <style>
+    html,
+    body{
+        height:100%;
+    }
+
+    body{
+        display:flex;
+        flex-direction:column;
+        min-height:100vh;
+    }
+
+    .contenido-principal{
+        flex:1;
+    }
+
+    .navbar-brand{
+        font-weight: 600;
+        letter-spacing: .5px;
+    }
+
+    .search-box{
+        min-width: 280px;
+    }
+
+    @media (max-width: 991px){
+        .search-box{
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .navbar-buttons{
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .navbar-buttons .btn{
+            width: 100%;
+        }
+    }
         .navbar-brand{
             font-weight: 600;
             letter-spacing: .5px;
@@ -44,7 +86,10 @@
                 width: 100%;
             }
         }
-    </style>
+
+
+</style>
+
 </head>
 <body>
 
@@ -138,6 +183,21 @@
 
                         <li>
                             <a class="dropdown-item"
+                            href="{% url 'lista_tareas_admin' %}">
+                                📋 Lista de Tareas
+                            </a>
+                        </li>
+
+                        <li>
+
+                            <a class="dropdown-item"
+                                href="{% url 'lista_tareas_finalizadas' %}">
+                                ✅ Tareas Finalizadas
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item"
                             href="{% url 'lista_tareas_eliminadas' %}">
                                 🗑 Tareas Eliminadas    
                             </a>
@@ -176,14 +236,16 @@
 </header>
 
 <!-- Contenido -->
-<div class="container mt-4">
-    {% block content %}
-    {% endblock %}
-</div>
+<main class="contenido-principal">
+    <div class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+</main>
 
-<br><br>
+
 <!-- Footer -->
-<footer class="bg-dark text-white mt-5">
+<footer class="bg-dark text-white">
 
     <div class="container py-4">
 

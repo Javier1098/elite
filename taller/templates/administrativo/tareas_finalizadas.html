@@ -1,0 +1,176 @@
+{% extends 'administrativo/base_admin.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<div class="card shadow">
+
+    <div class="card-header bg-success text-white">
+
+        <h3 class="mb-0">
+            ✅ Historial de Tareas Finalizadas
+        </h3>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-striped align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Placa</th>
+                        <th>Descripción</th>
+                        <th>Técnico</th>
+                        <th>Fecha Creación</th>
+                        <th>Fecha Finalización</th>
+                        <th>Observaciones</th>
+                        <th>Imágenes</th>
+
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for tarea in tareas %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ tarea.vehiculo }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ tarea.descripcion }}
+                        </td>
+
+                        <td>
+                            {{ tarea.tecnico }}
+                        </td>
+
+                        <td>
+                            {{ tarea.fecha_creacion|date:"d/m/Y H:i" }}
+                        </td>
+
+                        <td>
+                            <span class="badge bg-success">
+                                {{ tarea.fecha_finalizacion|date:"d/m/Y H:i" }}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            {% if tarea.observaciones %}
+
+                                <button
+                                    class="btn btn-info btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#obs{{ tarea.id }}">
+
+                                    Ver
+
+                                </button>
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    Sin observaciones
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a href="{% url 'imagenes_tarea_finalizada' tarea.id %}"
+                                class="btn btn-primary btn-sm">
+                                📷 Ver
+                            </a>
+
+                        </td>
+
+                        
+
+
+
+                    </tr>
+
+                    <!-- Modal Observaciones -->
+
+                    <div class="modal fade"
+                         id="obs{{ tarea.id }}"
+                         tabindex="-1">
+
+                        <div class="modal-dialog">
+
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title">
+                                        Observaciones Finales
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal">
+                                    </button>
+
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <strong>Vehículo:</strong>
+                                    {{ tarea.vehiculo }}
+
+                                    <hr>
+
+                                    {{ tarea.observaciones }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="6" class="text-center">
+
+                            No existen tareas finalizadas.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

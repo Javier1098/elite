@@ -5,37 +5,149 @@
 <div class="container mt-4">
 
     <h2 class="mb-4">
-        {% if editar %}
-            Editar Tarea
-        {% else %}
-            Nueva Tarea
-        {% endif %}
+        <div class="card-body">
+
+    {% if editar %}
+
+    <div class="mb-3">
+        <label class="form-label">Placa del vehículo</label>
+        <input type="text"
+            class="form-control"
+            value="{{ tarea.vehiculo.placa }}"
+            readonly>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Técnico que edita</label>
+        <input type="text"
+            class="form-control"
+            value="{{ request.user.username }}"
+            readonly>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fecha de edición</label>
+        <input type="text"
+            class="form-control"
+            value="{{ tarea.fecha_actualizacion }}"
+            readonly>
+    </div>
+
+    {% else %}
+
+    <div class="mb-3">
+        <label class="form-label">Placa del vehículo</label>
+        <input type="text"
+            class="form-control"
+            value="{{ vehiculo.placa }}"
+            readonly>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Técnico asignado</label>
+        <input type="text"
+            class="form-control"
+            value="{{ request.user.username }}"
+            readonly>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fecha de creación</label>
+        <input type="text"
+            class="form-control"
+            value="{% now 'd/m/Y' %}"
+            readonly>
+    </div>
+
+    {% endif %}
+
     </h2>
 
-    <form method="post" id="tareaForm">
+    <form method="post"
+        enctype="multipart/form-data"
+        id="tareaForm">
 
         {% csrf_token %}
 
+        <input type="hidden"
+            name="observaciones_finalizacion"
+            id="observaciones_finalizacion">
+
+        <input type="hidden"
+            name="confirmar_finalizacion"
+            id="confirmar_finalizacion"
+            value="0">
+
         <div class="card shadow-sm">
+
             <div class="card-body">
 
+                
+
                 {% for field in form %}
-                    <div class="mb-3">
+                <div class="mb-3">
 
-                        <label class="form-label">
-                            {{ field.label }}
-                        </label>
+                    <label class="form-label">
+                        {{ field.label }}
+                    </label>
 
-                        {{ field }}
+                    {{ field }}
 
-                        {% if field.errors %}
-                            <div class="text-danger mt-1">
-                                {{ field.errors }}
-                            </div>
-                        {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger mt-1">
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+
+                <hr>
+
+                <!-- 🔥 INPUT MULTI IMÁGENES -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        fotográfias
+                    </label>
+
+                    <input type="file"
+                        name="imagenes"
+                        class="form-control"
+                        multiple
+                        accept="image/*">
+
+                    <small class="text-muted">
+                        seleccionar imágenes.
+                    </small>
+
+                </div>
+
+                <!-- 🔥 IMÁGENES YA SUBIDAS -->
+                {% if editar and tarea.imagenes.all %}
+
+                <hr>
+
+                <h5>Imágenes cargadas</h5>
+
+                <div class="row">
+
+                    {% for img in tarea.imagenes.all %}
+
+                    <div class="col-md-3 col-sm-4 col-6 mb-3">
+
+                        <a href="{{ img.imagen.url }}" target="_blank">
+                            <img src="{{ img.imagen.url }}"
+                                class="img-fluid img-thumbnail">
+                        </a>
 
                     </div>
-                {% endfor %}
+
+                    {% endfor %}
+
+                </div>
+
+                {% endif %}
 
             </div>
 
@@ -50,25 +162,53 @@
                 </button>
 
                 <a href="{% url 'lista_tareas' %}"
-                   class="btn btn-secondary">
+                class="btn btn-secondary">
                     ↩ Volver
                 </a>
 
             </div>
-        </div>
 
+        </div>
     </form>
 
 </div>
 
 {% if editar %}
+<!-- MODAL -->
+    <div class="modal fade" id="confirmarGuardarModal" tabindex="-1">
 
-<!-- Modal Confirmación -->
-<div class="modal fade"
-     id="confirmarGuardarModal"
-     tabindex="-1"
-     aria-labelledby="confirmarGuardarModalLabel"
-     aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar cambios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    ¿Desea guardar los cambios realizados en esta tarea?
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="button" class="btn btn-success" id="btnConfirmarGuardar">
+                        Sí, guardar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade"
+     id="modalFinalizacion"
+     tabindex="-1">
 
     <div class="modal-dialog modal-dialog-centered">
 
@@ -76,9 +216,8 @@
 
             <div class="modal-header">
 
-                <h5 class="modal-title"
-                    id="confirmarGuardarModalLabel">
-                    Confirmar cambios
+                <h5 class="modal-title">
+                    Finalizar tarea
                 </h5>
 
                 <button type="button"
@@ -89,7 +228,31 @@
             </div>
 
             <div class="modal-body">
-                ¿Desea guardar los cambios realizados en esta tarea?
+
+                <div class="alert alert-success">
+
+                    <strong>Fecha de finalización:</strong>
+                    <br>
+
+                    <span id="fechaFinalizacion"></span>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Observaciones finales
+                    </label>
+
+                    <textarea
+                        id="txtObservaciones"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Describa el trabajo realizado">
+                    </textarea>
+
+                </div>
+
             </div>
 
             <div class="modal-footer">
@@ -97,13 +260,17 @@
                 <button type="button"
                         class="btn btn-secondary"
                         data-bs-dismiss="modal">
+
                     Cancelar
+
                 </button>
 
                 <button type="button"
-                        class="btn btn-success"
-                        id="btnConfirmarGuardar">
-                    Sí, guardar
+                        id="btnFinalizar"
+                        class="btn btn-success">
+
+                    Finalizar tarea
+
                 </button>
 
             </div>
@@ -113,77 +280,96 @@
     </div>
 
 </div>
-
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
 
     const form = document.getElementById('tareaForm');
 
-    const modal = new bootstrap.Modal(
+    const modalGuardar = new bootstrap.Modal(
         document.getElementById('confirmarGuardarModal')
+    );
+
+    const modalFinalizacion = new bootstrap.Modal(
+        document.getElementById('modalFinalizacion')
     );
 
     let envioConfirmado = false;
 
-    const valoresOriginales = {};
-
-    form.querySelectorAll('input, select, textarea').forEach(campo => {
-
-        if (
-            campo.type !== 'hidden' &&
-            campo.name !== 'csrfmiddlewaretoken'
-        ) {
-            valoresOriginales[campo.name] = campo.value;
-        }
-
-    });
-
     form.addEventListener('submit', function (e) {
 
-        if (envioConfirmado) {
-            return;
-        }
-
-        let hayCambios = false;
-
-        form.querySelectorAll('input, select, textarea').forEach(campo => {
-
-            if (
-                campo.type !== 'hidden' &&
-                campo.name !== 'csrfmiddlewaretoken'
-            ) {
-
-                if (campo.value !== valoresOriginales[campo.name]) {
-                    hayCambios = true;
-                }
-
-            }
-
-        });
-
-        if (!hayCambios) {
-
-            e.preventDefault();
-
-            alert('No se detectaron cambios para guardar.');
-
+        if (envioConfirmado){
             return;
         }
 
         e.preventDefault();
-        modal.show();
+
+        const estado = document.getElementById('id_estado');
+
+        if(
+            estado &&
+            estado.value === 'Finalizada'
+        ){
+
+            document.getElementById(
+                'fechaFinalizacion'
+            ).innerHTML =
+                new Date().toLocaleString();
+
+            modalFinalizacion.show();
+        }
+        else{
+
+            modalGuardar.show();
+        }
 
     });
 
-    document.getElementById('btnConfirmarGuardar')
-        .addEventListener('click', function () {
+    document.getElementById(
+        'btnConfirmarGuardar'
+    ).addEventListener('click', function(){
 
-            envioConfirmado = true;
-            modal.hide();
-            form.submit();
+        envioConfirmado = true;
 
-        });
+        modalGuardar.hide();
+
+        form.submit();
+
+    });
+
+    document.getElementById(
+        'btnFinalizar'
+    ).addEventListener('click', function(){
+
+        const observaciones =
+            document.getElementById(
+                'txtObservaciones'
+            ).value.trim();
+
+        if(observaciones === ''){
+
+            alert(
+                'Debe ingresar observaciones para finalizar la tarea.'
+            );
+
+            return;
+        }
+
+        document.getElementById(
+            'observaciones_finalizacion'
+        ).value = observaciones;
+
+        document.getElementById(
+            'confirmar_finalizacion'
+        ).value = '1';
+
+        envioConfirmado = true;
+
+        modalFinalizacion.hide();
+
+        form.submit();
+
+    });
 
 });
 

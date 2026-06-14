@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vehiculo, Tarea, TareaEliminada
+from .models import Vehiculo, Tarea, TareaEliminada, ImagenTarea, TareaFinalizada
 from .forms import TareaForm
 from .forms import VehiculoForm
 from django.contrib.auth import authenticate, login, logout
@@ -25,12 +25,19 @@ import os
 from reportlab.lib.units import cm
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from django.utils import timezone
+from datetime import timedelta
 
 
 
 
-
+#*********************
 #funciones de tecnicos
+#*********************
+
+#------------------------
+#Vista de inicio tecnicos
+#------------------------
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 
@@ -38,8 +45,10 @@ def tecnicos (request):
     return render(request, 'tecnicos/principal_tecni.html')
 
 
+#---------------------------------
+#Vista lista de vehiculos creados
+#----------------------------------
 
-#Funciones vehiculos
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def lista_vehiculos(request):
@@ -67,6 +76,10 @@ def lista_vehiculos(request):
         }
     )
     
+#--------------------------
+#Funcion de crear cliente
+#--------------------------
+    
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def crear_vehiculo(request):
@@ -77,6 +90,10 @@ def crear_vehiculo(request):
     print(form.errors)  # Para depurar
     return render(request, 'vehiculos/form.html', {'form': form, 'es_edicion':False})
 
+    
+#--------------------------
+#Funcion de editar cliente
+#--------------------------
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 
@@ -89,6 +106,10 @@ def editar_vehiculo(request, placa):
         return redirect('lista')
     return render(request, 'vehiculos/form.html', {'form': form, 'es_edicion':True})
 
+    
+#--------------------------
+#Funcion de eliminar cliente
+#--------------------------
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
@@ -120,14 +141,28 @@ def eliminar_vehiculo(request, placa):
     return redirect('lista')
 
 
-#funciones de tareas
+#*********************
+# funciones de tareas
+#*********************
+
+#--------------------------
+# funciones lista de tareas
+#--------------------------
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def lista_tareas(request):
 
     busqueda = request.GET.get('q', '')
 
-    tareas = Tarea.objects.select_related('vehiculo', 'tecnico')
+    limite = timezone.now() - timedelta(days=15)
+
+    tareas = Tarea.objects.select_related(
+        'vehiculo',
+        'tecnico'
+    ).exclude(
+        estado='Finalizada',
+        fecha_finalizacion__lt=limite
+    )
 
     if busqueda:
         tareas = tareas.filter(
@@ -146,20 +181,26 @@ def lista_tareas(request):
         }
     )
     
-
+#---------------------
+# funciones de crear tareas
+#---------------------
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
-def crear_tarea(request):
+def crear_tarea(request, placa):
+
+    vehiculo = get_object_or_404(
+        Vehiculo,
+        placa=placa
+    )
 
     if request.method == 'POST':
-
         form = TareaForm(request.POST)
 
         if form.is_valid():
 
             tarea = form.save(commit=False)
 
-            # Guarda el técnico que realiza la tarea
+            tarea.vehiculo = vehiculo
             tarea.tecnico = request.user
 
             tarea.save()
@@ -168,13 +209,20 @@ def crear_tarea(request):
 
     else:
         form = TareaForm()
+        if 'tecnico' in form.fields:
+            form.fields['tecnico'].initial = request.user
 
     return render(
         request,
         'tecnicos/form_tarea.html',
-        {'form': form,
-         'editar':False}
+        {'form': form, 'vehiculo':vehiculo,
+        'editar':False}
     )
+
+    
+#--------------------------
+#Funcion de editar tarea
+#--------------------------
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
@@ -189,39 +237,109 @@ def editar_tarea(request, id):
             instance=tarea
         )
 
+        archivos = request.FILES.getlist('imagenes')
+
         if form.is_valid():
-            form.save()
+
+            tarea_editada = form.save(commit=False)
+
+            # Si se finaliza por primera vez
+            if (
+                tarea_editada.estado == 'Finalizada'
+                and not tarea.fecha_finalizacion
+            ):
+
+                tarea_editada.fecha_finalizacion = timezone.now()
+
+                tarea_editada.observaciones_finalizacion = (
+                    request.POST.get(
+                        'observaciones_finalizacion'
+                    )
+                )
+
+            tarea_editada.save()
+
+            # Crear historial una sola vez
+            if (
+                tarea_editada.estado == 'Finalizada'
+                and not TareaFinalizada.objects.filter(
+                    tarea=tarea_editada
+                ).exists()
+            ):
+
+                TareaFinalizada.objects.create(
+                    tarea=tarea_editada,
+                    vehiculo=tarea_editada.vehiculo.placa,
+                    descripcion=tarea_editada.descripcion,
+                    tecnico=tarea_editada.tecnico.username,
+                    fecha_creacion=tarea_editada.fecha_creacion,
+                    fecha_finalizacion=tarea_editada.fecha_finalizacion,
+                    observaciones=tarea_editada.observaciones_finalizacion
+                )
+
+            # Guardar imágenes
+            for archivo in archivos:
+
+                ImagenTarea.objects.create(
+                    tarea=tarea_editada,
+                    imagen=archivo
+                )
+
             return redirect('lista_tareas')
 
     else:
-        form = TareaForm(instance=tarea)
+
+        form = TareaForm(
+            instance=tarea
+        )
 
     return render(
         request,
         'tecnicos/form_tarea.html',
         {
             'form': form,
+            'tarea': tarea,
             'editar': True
         }
     )
- 
+    
+#----------------------------    
+#Lista de tareas finalizadas
+#----------------------------
+
 @login_required
-@user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())    
-def eliminar_tarea(request, id):
+@user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
+def lista_tareas_finalizadas(request):
 
-    tarea = get_object_or_404(Tarea, id=id)
+    tareas = TareaFinalizada.objects.all()\
+        .order_by('-fecha_finalizacion')
 
-    tarea.delete()
+    return render(
+        request,
+        'administrativo/tareas_finalizadas.html',
+        {'tareas': tareas}
+    )    
+    
+#----------------------------    
+#Funcion eliminar tareas 
+#----------------------------
 
-    return redirect('lista_tareas')
 
-#Buscar vehículo por placa
+
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def eliminar_tarea(request, id):
 
     tarea = get_object_or_404(Tarea, id=id)
+
+    # No permitir eliminar tareas finalizadas
+    if tarea.estado == 'Finalizada':
+        messages.error(
+            request,
+            'Las tareas finalizadas no pueden eliminarse.'
+        )
+        return redirect('lista_tareas')
 
     if request.method == 'POST':
 
@@ -237,12 +355,24 @@ def eliminar_tarea(request, id):
 
         tarea.delete()
 
+        messages.success(
+            request,
+            'Tarea eliminada correctamente.'
+        )
+
         return redirect('lista_tareas')
 
     return redirect('lista_tareas')
-    
-#Funciones administrativos
 
+
+
+#**************************    
+#Funciones administrativos
+#**************************
+
+#-----------------------------
+#vista de inicio panel administrativo
+#-----------------------------
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
 
@@ -258,6 +388,8 @@ def informe_view(request):
         request,
         'administrativo/informe.html'
     )
+
+
 
 
 #Función de generar informe PDF
@@ -649,3 +781,50 @@ def historial_tareas_eliminadas(request):
         'administrativo/historial_tareas_eliminadas.html',
         {'tareas': tareas}
     )
+    
+# Lista de los estados de las tareas en vistas administrativa
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
+def lista_tareas_admin(request):
+
+    tareas = Tarea.objects.select_related(
+        'vehiculo',
+        'tecnico'
+    ).order_by('-fecha_actualizacion')
+
+    return render(
+        request,
+        'administrativo/lista_tareas_admin.html',
+        {'tareas': tareas}
+    )
+    
+    
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name__in=['Tecnico', 'Administrativo']).exists())
+
+def imagenes_tarea(request, tarea_id):
+
+    tarea = get_object_or_404(Tarea, id=tarea_id)
+
+    imagenes = tarea.imagenes.all().order_by('-fecha_subida')
+
+    return render(
+        request,
+        'tecnicos/imagenes_tarea.html',
+        {
+            'tarea': tarea,
+            'imagenes': imagenes
+        }
+    )
+    
+    
+def imagenes_tarea_finalizada(request, id):
+    tarea_finalizada = TareaFinalizada.objects.get(id=id)
+
+    imagenes = tarea_finalizada.tarea.imagenes.all()
+
+    return render(request, 'administrativo/imagenes_tarea_admin.html', {
+        'tarea': tarea_finalizada.tarea,
+        'imagenes': imagenes
+    })

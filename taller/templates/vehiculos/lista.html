@@ -68,7 +68,7 @@
                     <td>
                         <div class="d-grid gap-1">
                             <a href="{% url 'editar' v.placa %}"
-                               class="btn btn-warning btn-sm">
+                                class="btn btn-warning btn-sm">
                                 Editar
                             </a>
 
@@ -79,8 +79,8 @@
                                 Eliminar
                             </button>
 
-                            <a href="{% url 'crear_tarea' %}"
-                               class="btn btn-outline-success btn-sm">
+                            <a href="{% url 'crear_tarea' v.placa %}"
+                                class="btn btn-outline-success btn-sm">
                                 Agregar Tarea
                             </a>
                         </div>

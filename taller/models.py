@@ -88,7 +88,8 @@ class Tarea(models.Model):
 
     descripcion = models.CharField(max_length=255)
 
-    fecha_creacion = models.DateField(auto_now_add=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     estado = models.CharField(
         max_length=15,
@@ -96,11 +97,48 @@ class Tarea(models.Model):
         default='Pendiente'
     )
     
-    
+    fecha_finalizacion = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
+    observaciones_finalizacion = models.TextField(
+        blank=True,
+        null=True
+    )
+    
+    
 
     def __str__(self):
         return f"{self.vehiculo.placa} - {self.estado} - {self.descripcion}"
+    
+    
+#tareas finalizadas
+
+class TareaFinalizada(models.Model):
+
+    tarea = models.OneToOneField(
+        'Tarea',
+        on_delete=models.CASCADE,
+        related_name='finalizacion',
+        null=False,
+        blank=False
+    )
+
+    vehiculo = models.CharField(max_length=20)
+    descripcion = models.CharField(max_length=255)
+    tecnico = models.CharField(max_length=150)
+
+    fecha_creacion = models.DateTimeField()
+    fecha_finalizacion = models.DateTimeField()
+
+    observaciones = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return f"{self.descripcion} - {self.vehiculo}"
     
     
 #Tareas eliminadas
@@ -125,3 +163,24 @@ class TareaEliminada(models.Model):
 
     def __str__(self):
         return f"{self.descripcion} - {self.fecha}"
+    
+    
+#Modelo de imagenes de tareas
+class ImagenTarea(models.Model):
+
+    tarea = models.ForeignKey(
+        Tarea,
+        on_delete=models.CASCADE,
+        related_name='imagenes'
+    )
+
+    imagen = models.ImageField(
+        upload_to='tareas/'
+    )
+
+    fecha_subida = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"Imagen {self.id} - {self.tarea.id}"

@@ -2,138 +2,213 @@
 
 {% block content %}
 
-<h2>Tareas</h2>
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📋 Panel de Tareas</h2>
+    </div>
+
+    <select id="filtroEstado" class="form-select mb-3">
+        <option value="">Todos</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="En Proceso">En Proceso</option>
+        <option value="Finalizada">Finalizada</option>
+    </select>
+
+    <!-- TABLA -->
+    <div class="table-responsive">
+
+        <table class="table table-hover align-middle shadow-sm">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>Placa</th>
+                    <th>Tarea</th>
+                    <th>Estado</th>
+                    <th>Fecha creación</th>
+                    <th>Última modificación</th>
+                    <th>Acciones</th>
+                    <th>Imágenes</th>
+                
+                </tr>
+            </thead>
+
+            <tbody id="tablaTareas">
+
+            {% for tarea in tareas %}
+                <tr>
+
+                    <td>{{ tarea.vehiculo.placa }}</td>
+
+                    <td>{{ tarea.descripcion }}</td>
+
+                    <td>
+                        {% if tarea.estado == 'Pendiente' %}
+                            <span class="badge bg-warning text-dark">
+                                Pendiente
+                            </span>
+
+                        {% elif tarea.estado == 'En Proceso' %}
+                            <span class="badge bg-info text-dark">
+                                En Proceso
+                            </span>
+
+                        {% else %}
+                            <span class="badge bg-success">
+                                Finalizada
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ tarea.fecha_creacion|date:"d/m/Y H:i" }}
+                    </td>
+
+                    <td>
+                        {{ tarea.fecha_actualizacion|date:"d/m/Y H:i" }}
+                    </td>
+
+                    <td>
+
+                        {% if tarea.estado != 'Finalizada' %}
+
+                            <a href="{% url 'editar_tarea' tarea.id %}"
+                                class="btn btn-sm btn-warning">
+                                ✏️
+                            </a>
+
+                            <button
+                                class="btn btn-danger btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEliminar{{ tarea.id }}">
+                                🗑️
+                            </button>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if tarea.estado == 'Finalizada' %}
+
+                            <a href="{% url 'imagenes_tarea' tarea.id%}"
+                                class="btn btn-sm btn-primary">
+                                📷 Ver imágenes
+                            </a>
+
+                        {% else %}
+
+                            <span class="text-muted">-</span>
+
+                        {% endif %}
+
+                    </td>
 
 
-<br><br>
 
-<table class="table">
+                </tr>
 
-    <thead>
-        <tr>
-            <th>Placa</th>
-            <th>Tarea</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            
-            <th>Acciones</th>
-        </tr>
-    </thead>
+                <!-- MODAL ELIMINAR TAREA -->
+                {% if tarea.estado != 'Finalizada' %}
 
-    <tbody>
+                <div class="modal fade"
+                    id="modalEliminar{{ tarea.id }}"
+                    tabindex="-1">
 
-    {% for tarea in tareas %}
+                    <div class="modal-dialog">
 
-        <tr>
+                        <div class="modal-content">
 
-            <td>{{ tarea.vehiculo.placa }}</td>
+                            <form method="POST"
+                                action="{% url 'eliminar_tarea' tarea.id %}">
 
-            <td>{{ tarea.descripcion }}</td>
+                                {% csrf_token %}
 
-            <td>
-                {% if tarea.estado == 'Pendiente' %}
-                    <span class="badge bg-warning">
-                        Pendiente
-                    </span>
-                {% elif tarea.estado == 'En Proceso' %}
-                    <span class="badge bg-info">
-                        En Proceso
-                    </span>
+                                <div class="modal-header bg-danger text-white">
 
-                {% else %}
-                    <span class="badge bg-success">
-                        Finalizada
-                    </span>
+                                    <h5 class="modal-title">
+                                        Confirmar eliminación
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close btn-close-white"
+                                            data-bs-dismiss="modal">
+                                    </button>
+
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <p>
+                                        ¿Está seguro de eliminar la tarea?
+                                    </p>
+
+                                    <div class="alert alert-warning">
+
+                                        <strong>
+                                            {{ tarea.descripcion }}
+                                        </strong>
+
+                                    </div>
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Motivo de eliminación
+                                        </label>
+
+                                        <textarea
+                                            name="motivo"
+                                            class="form-control"
+                                            rows="3"
+                                            required
+                                            placeholder="Escriba el motivo de la eliminación">
+                                        </textarea>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            data-bs-dismiss="modal">
+                                        Cancelar
+                                    </button>
+
+                                    <button type="submit"
+                                            class="btn btn-danger">
+                                        Sí, eliminar
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
                 {% endif %}
-            </td>
 
-            <td>{{ tarea.fecha_creacion }}</td>
+            {% empty %}
 
-            <td>
+                <tr>
+                    <td colspan="6" class="text-center">
+                        No existen tareas registradas.
+                    </td>
+                </tr>
 
-                <a href="{% url 'editar_tarea' tarea.id %}"
-                   class="btn btn-warning">
-                    Editar
-                </a>
+            {% endfor %}
 
-                <button
-                    type="button"
-                    class="btn btn-danger btnEliminar"
-                    data-id="{{ tarea.id }}"
-                    data-descripcion="{{ tarea.descripcion }}">
-                    Eliminar
-                </button>
+            </tbody>
 
-            </td>
-
-        </tr>
-
-    {% endfor %}
-
-    </tbody>
-
-</table>
-
-
-
-<div class="modal fade" id="modalEliminar" tabindex="-1">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <form method="post" id="formEliminar">
-
-                {% csrf_token %}
-
-                <div class="modal-header">
-
-                    <h5 class="modal-title">
-                        Eliminar tarea
-                    </h5>
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                    </button>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <p id="textoEliminar"></p>
-
-                    <label class="form-label">
-                        Motivo de eliminación
-                    </label>
-
-                    <textarea
-                        name="motivo"
-                        class="form-control"
-                        required
-                        rows="4"></textarea>
-
-                </div>
-
-                <div class="modal-footer">
-
-                    <button type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-
-                    <button type="submit"
-                            class="btn btn-danger">
-                        Eliminar
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
+        </table>
 
     </div>
 
@@ -141,36 +216,30 @@
 
 <script>
 
-document.addEventListener('DOMContentLoaded', function(){
+document.getElementById("filtroEstado").addEventListener("change", function () {
 
-    const modal = new bootstrap.Modal(
-        document.getElementById('modalEliminar')
-    );
+    let filtro = this.value.toLowerCase();
 
-    document.querySelectorAll('.btnEliminar')
-        .forEach(function(btn){
+    let filas = document.querySelectorAll("#tablaTareas tr");
 
-            btn.addEventListener('click', function(){
+    filas.forEach(function (fila) {
 
-                const id = this.dataset.id;
-                const descripcion = this.dataset.descripcion;
+        let estado = fila.children[2].innerText.toLowerCase();
 
-                document.getElementById('textoEliminar')
-                    .innerHTML =
-                    '¿Está seguro de eliminar la tarea:<br><strong>' +
-                    descripcion +
-                    '</strong>?';
+        if (!filtro || estado.includes(filtro)) {
 
-                document.getElementById('formEliminar')
-                    .action = '/tareas/eliminar/' + id + '/';
+            fila.style.display = "";
 
-                modal.show();
+        } else {
 
-            });
+            fila.style.display = "none";
 
-        });
+        }
+
+    });
 
 });
+
 </script>
 
 {% endblock %}
