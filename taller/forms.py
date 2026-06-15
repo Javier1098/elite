@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User, Group
-from .models import Vehiculo, Tarea
+from .models import Vehiculo, Tarea, EntregaVehiculo
 import datetime
 
 
@@ -130,6 +130,62 @@ class VehiculoForm(forms.ModelForm):
             )
 
         return identificacion
+
+
+#=================================
+#Formulario de Entrega de vehiculo
+#=================================
+
+from django import forms
+
+class EntregaVehiculoForm(forms.ModelForm):
+    
+    estado_pago = forms.ChoiceField(
+        choices=EntregaVehiculo.ESTADOS_PAGO,
+        initial='Pendiente',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    class Meta:
+        model = EntregaVehiculo
+
+        fields = [
+            'nombre_recibe',
+            'identificacion_recibe',
+            'celular_recibe',
+            'estado_pago',
+            'imagen_entrega',
+            
+        ]
+
+        widgets = {
+
+            'nombre_recibe': forms.TextInput(
+                attrs={'class':'form-control'}
+            ),
+
+            'identificacion_recibe': forms.TextInput(
+                attrs={'class':'form-control'}
+            ),
+
+            'celular_recibe': forms.TextInput(
+                attrs={'class':'form-control'}
+            ),
+
+            'estado_pago': forms.Select(
+                attrs={'class':'form-select'}
+            ),
+
+            'imagen_entrega': forms.FileInput(
+                attrs={'class':'form-control'}
+            ),
+
+            
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['estado_pago'].initial = None
+
 
 
 # ==========================

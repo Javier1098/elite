@@ -2,9 +2,9 @@
 from django.http import HttpResponse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vehiculo, Tarea, TareaEliminada, ImagenTarea, TareaFinalizada
+from .models import Vehiculo, Tarea, TareaEliminada, ImagenTarea, TareaFinalizada, EntregaVehiculo
 from .forms import TareaForm
-from .forms import VehiculoForm
+from .forms import VehiculoForm, EntregaVehiculoForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -141,6 +141,64 @@ def eliminar_vehiculo(request, placa):
     return redirect('lista')
 
 
+#-----------------------
+#Entregar vehiculo
+#------------------------
+
+@login_required
+def entregar_vehiculo(request, placa):
+
+    vehiculo = get_object_or_404(
+        Vehiculo,
+        placa=placa
+    )
+
+    if request.method == 'POST':
+        
+        print("FIRMA RECIBIDA:")
+        print(request.POST.get('firma_recibe'))
+
+        form = EntregaVehiculoForm(
+            request.POST,
+            request.FILES
+        )
+        if form.is_valid():
+
+            entrega = form.save(commit=False)
+
+            entrega.vehiculo = vehiculo
+            entrega.tecnico = request.user
+            entrega.firma_recibe = request.POST.get(
+                    'firma_recibe',
+                    ''
+                )
+
+            entrega.save()
+
+            vehiculo.estado = 'Entregado'
+            vehiculo.save()
+
+            return redirect('lista')
+
+        else:
+
+            print("ERRORES DEL FORMULARIO:")
+            print(form.errors)
+            
+    else:
+
+        form = EntregaVehiculoForm()
+
+    return render(
+        request,
+        'tecnicos/entregar_vehiculo.html',
+        {
+            'vehiculo': vehiculo,
+            'form': form
+        }
+    )
+
+
 #*********************
 # funciones de tareas
 #*********************
@@ -192,6 +250,13 @@ def crear_tarea(request, placa):
         Vehiculo,
         placa=placa
     )
+    
+    if vehiculo.estado_actual == 'Entregado':
+        messages.error(
+            request,
+            'No se pueden crear tareas para vehículos entregados.'
+        )
+        return redirect('lista')
 
     if request.method == 'POST':
         form = TareaForm(request.POST)
@@ -227,8 +292,17 @@ def crear_tarea(request, placa):
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def editar_tarea(request, id):
+    
+    
 
     tarea = get_object_or_404(Tarea, id=id)
+    
+    if tarea.vehiculo.estado_actual == 'Entregado':
+        messages.error(
+            request,
+            'No se pueden editar tareas de vehículos entregados.'
+        )
+        return redirect('lista_tareas')
 
     if request.method == 'POST':
 
@@ -299,6 +373,7 @@ def editar_tarea(request, id):
         {
             'form': form,
             'tarea': tarea,
+            'vehiculo': tarea.vehiculo,
             'editar': True
         }
     )

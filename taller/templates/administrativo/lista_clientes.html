@@ -27,22 +27,71 @@
             <th>Color</th>
             <th>Teléfono</th>
             <th>Correo</th>
+            <th>Estado</th>
+            <th>Cobro / Pago</th>
         </tr>
     </thead>
 
     <tbody>
         {% for vehiculo in vehiculos %}
         <tr>
+
             <td>{{ vehiculo.placa }}</td>
             <td>{{ vehiculo.propietario }}</td>
             <td>{{ vehiculo.marca }}</td>
             <td>{{ vehiculo.color }}</td>
             <td>{{ vehiculo.telefono }}</td>
             <td>{{ vehiculo.Correo }}</td>
+
+            <!-- ESTADO -->
+            <td>
+                {% if vehiculo.estado_actual == 'Ingresado' %}
+                    <span class="badge bg-secondary">Ingresado</span>
+
+                {% elif vehiculo.estado_actual == 'En Reparación' %}
+                    <span class="badge bg-warning text-dark">En Reparación</span>
+
+                {% elif vehiculo.estado_actual == 'Finalizado' %}
+                    <span class="badge bg-success">Finalizado</span>
+
+                {% elif vehiculo.estado_actual == 'Entregado' %}
+                    <span class="badge bg-primary">Entregado</span>
+                {% endif %}
+            </td>
+
+            <!-- COBRO / PAGO -->
+            <td>
+
+                {% if vehiculo.estado_actual == 'Finalizado' %}
+
+                    <a href=#
+                       class="btn btn-success btn-sm">
+                        💰 Generar Cobro
+                    </a>
+
+                {% elif vehiculo.estado_actual == 'Entregado' %}
+
+                    {% if vehiculo.entrega.estado_pago == 'Pagado' %}
+                        <span class="badge bg-success">
+                            ✔ Pagado
+                        </span>
+                    {% else %}
+                        <a href=#
+                           class="btn btn-danger btn-sm">
+                            Pendiente Pago
+                        </a>
+                    {% endif %}
+
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+
+            </td>
+
         </tr>
         {% empty %}
         <tr>
-            <td colspan="6" class="text-center">
+            <td colspan="8" class="text-center">
                 No se encontraron registros.
             </td>
         </tr>

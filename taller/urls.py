@@ -17,7 +17,7 @@ urlpatterns = [
     path('crear/', views.crear_vehiculo, name='crear'),
     path('editar/<str:placa>/', views.editar_vehiculo, name='editar'),
     path('eliminar/<str:placa>/', views.eliminar_vehiculo, name='eliminar'),
-    
+    path('vehiculo/<str:placa>/entregar/',views.entregar_vehiculo,name='entregar_vehiculo'),
     #estas son las rutas de las tareas
     
     path('tareas/',views.lista_tareas,name='lista_tareas'),

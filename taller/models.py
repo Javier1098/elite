@@ -38,8 +38,28 @@ class Vehiculo(models.Model):
     fecha_ingreso = models.DateField( null=True, blank=False)
     imagen = models.ImageField(upload_to='imagenes/', null=True, blank=False)
     
-    
-    
+    @property
+    def estado_actual(self):
+
+        # Si ya fue entregado
+        if hasattr(self, 'entrega'):
+            return "Entregado"
+
+        tareas = self.tareas.all()
+
+        # No tiene tareas
+        if not tareas.exists():
+            return "Ingresado"
+
+        # Tiene tareas pendientes o en proceso
+        if tareas.filter(
+            estado__in=['Pendiente', 'En Proceso']
+        ).exists():
+            return "En Reparación"
+
+        # Todas las tareas están finalizadas
+        return "Finalizado"
+        
 
     def __str__(self):
         return f"{self.placa} - {self.marca}"
@@ -60,6 +80,61 @@ class VehiculoEliminado(models.Model):
 
     def __str__(self):
         return f"{self.placa} - {self.fecha}"
+    
+    
+#Modelo para entrega de vehiculo
+
+class EntregaVehiculo(models.Model):
+
+    ESTADOS_PAGO = (
+        ('Pagado', 'Pagado'),
+        ('Pendiente', 'Pendiente de pago'),
+    )
+
+    vehiculo = models.OneToOneField(
+        Vehiculo,
+        on_delete=models.CASCADE,
+        related_name='entrega'
+    )
+
+    tecnico = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    fecha_entrega = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    nombre_recibe = models.CharField(
+        max_length=100
+    )
+
+    identificacion_recibe = models.CharField(
+        max_length=20
+    )
+
+    celular_recibe = models.CharField(
+        max_length=15
+    )
+
+    estado_pago = models.CharField(
+        max_length=20,
+        choices=ESTADOS_PAGO
+    )
+
+    imagen_entrega = models.ImageField(
+        upload_to='entregas/'
+    )
+
+    firma_recibe = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return self.vehiculo.placa
 
 
     
@@ -71,6 +146,7 @@ class Tarea(models.Model):
         ('Pendiente', 'Pendiente'),
         ('En Proceso', 'En Proceso'),
         ('Finalizada', 'Finalizada'),
+        
     )
 
     vehiculo = models.ForeignKey(

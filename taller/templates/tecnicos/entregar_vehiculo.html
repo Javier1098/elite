@@ -1,0 +1,258 @@
+{% extends 'vehiculos/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+                🚚 Entrega de Vehículo
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST"
+                enctype="multipart/form-data">
+
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+
+                {% csrf_token %}
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            Placa
+                        </label>
+
+                        <input type="text"
+                            class="form-control"
+                            value="{{ vehiculo.placa }}"
+                            readonly>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            Fecha de entrega
+                        </label>
+
+                        <input type="text"
+                            class="form-control"
+                            value="{% now 'd/m/Y H:i' %}"
+                            readonly>
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Técnico que entrega
+                    </label>
+
+                    <input type="text"
+                        class="form-control"
+                        value="{{ request.user.username }}"
+                        readonly>
+                </div>
+
+                <hr>
+
+                <h5>Datos de quien recibe</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Nombre completo
+                    </label>
+
+                    {{ form.nombre_recibe }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Identificación
+                    </label>
+
+                    {{ form.identificacion_recibe }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Celular
+                    </label>
+
+                    {{ form.celular_recibe }}
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Estado de pago
+                    </label>
+
+                    {{ form.estado_pago }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Fotografía de la entrega
+                    </label>
+
+                    {{ form.imagen_entrega }}
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Firma del cliente
+                    </label>
+
+                    <canvas id="signature-pad"
+                            width="600"
+                            height="200"
+                            style="
+                                width:100%;
+                                border:1px solid #ced4da;
+                                border-radius:8px;
+                                background:#fff;
+                                cursor:crosshair;">
+                    </canvas>
+
+                    <input type="hidden"
+                        name="firma_recibe"
+                        id="firma_recibe">
+
+                    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+                    <div class="mt-2">
+
+                        <button type="button"
+                                class="btn btn-secondary btn-sm"
+                                id="limpiarFirma">
+
+                            🧹 Limpiar firma
+
+                        </button>
+
+                    </div>
+
+                    <small class="text-muted">
+                        El cliente puede firmar con mouse o pantalla táctil.
+                    </small>
+
+                </div>
+
+                <hr>
+
+                <button type="submit"
+                        class="btn btn-success">
+
+                    ✅ Confirmar entrega
+
+                </button>
+
+                <a href="{% url 'lista' %}"
+                   class="btn btn-secondary">
+
+                    Cancelar
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const canvas = document.getElementById('signature-pad');
+
+    function resizeCanvas() {
+
+        const ratio = Math.max(
+            window.devicePixelRatio || 1,
+            1
+        );
+
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = 200 * ratio;
+
+        canvas.getContext('2d').scale(
+            ratio,
+            ratio
+        );
+    }
+
+    resizeCanvas();
+
+    const signaturePad = new SignaturePad(
+        canvas,
+        {
+            minWidth: 1,
+            maxWidth: 3
+        }
+    );
+
+    window.addEventListener(
+        'resize',
+        resizeCanvas
+    );
+
+    document.getElementById(
+        'limpiarFirma'
+    ).addEventListener(
+        'click',
+        function () {
+
+            signaturePad.clear();
+
+        }
+    );
+
+    document.querySelector(
+        'form'
+    ).addEventListener(
+        'submit',
+        function (e) {
+
+            console.log("Firma vacía:", signaturePad.isEmpty());
+
+            if (signaturePad.isEmpty()) {
+
+                alert(
+                    'Debe capturar la firma del cliente.'
+                );
+
+                e.preventDefault();
+                return;
+            }
+
+            document.getElementById(
+                'firma_recibe'
+            ).value = signaturePad.toDataURL(
+                'image/png'
+            );
+
+        }
+    );
+
+});
+
+</script>
+
+{% endblock %}
