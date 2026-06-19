@@ -116,15 +116,8 @@
                         Firma del cliente
                     </label>
 
-                    <canvas id="signature-pad"
-                            width="600"
-                            height="200"
-                            style="
-                                width:100%;
-                                border:1px solid #ced4da;
-                                border-radius:8px;
-                                background:#fff;
-                                cursor:crosshair;">
+                   <canvas id="signature-pad"
+                            style="width:100%; height:200px; touch-action:none; border:1px solid #ced4da; border-radius:8px; background:#fff;">
                     </canvas>
 
                     <input type="hidden"
@@ -175,81 +168,63 @@
 
 </div>
 
-
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
 
     const canvas = document.getElementById('signature-pad');
+    const form = document.querySelector('form');
+    const limpiarBtn = document.getElementById('limpiarFirma');
+    const inputFirma = document.getElementById('firma_recibe');
 
+    if (!canvas || !form || !inputFirma) {
+        console.error("Faltan elementos del formulario de firma");
+        return;
+    }
+
+    const signaturePad = new SignaturePad(canvas, {
+        minWidth: 1,
+        maxWidth: 3
+    });
+
+    // 🔥 Resize seguro sin distorsión
     function resizeCanvas() {
 
-        const ratio = Math.max(
-            window.devicePixelRatio || 1,
-            1
-        );
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
 
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = 200 * ratio;
 
-        canvas.getContext('2d').scale(
-            ratio,
-            ratio
-        );
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
+        ctx.scale(ratio, ratio);
+
+        signaturePad.clear(); // evita firmas deformadas
     }
 
     resizeCanvas();
 
-    const signaturePad = new SignaturePad(
-        canvas,
-        {
-            minWidth: 1,
-            maxWidth: 3
-        }
-    );
+    window.addEventListener('resize', resizeCanvas);
 
-    window.addEventListener(
-        'resize',
-        resizeCanvas
-    );
-
-    document.getElementById(
-        'limpiarFirma'
-    ).addEventListener(
-        'click',
-        function () {
-
+    // 🧹 Limpiar firma
+    if (limpiarBtn) {
+        limpiarBtn.addEventListener('click', function () {
             signaturePad.clear();
+        });
+    }
 
+    // 📤 Submit del formulario
+    form.addEventListener('submit', function (e) {
+
+        if (signaturePad.isEmpty()) {
+            alert('Debe capturar la firma del cliente.');
+            e.preventDefault();
+            return;
         }
-    );
 
-    document.querySelector(
-        'form'
-    ).addEventListener(
-        'submit',
-        function (e) {
-
-            console.log("Firma vacía:", signaturePad.isEmpty());
-
-            if (signaturePad.isEmpty()) {
-
-                alert(
-                    'Debe capturar la firma del cliente.'
-                );
-
-                e.preventDefault();
-                return;
-            }
-
-            document.getElementById(
-                'firma_recibe'
-            ).value = signaturePad.toDataURL(
-                'image/png'
-            );
-
-        }
-    );
+        // 🔥 Guardar firma como base64
+        inputFirma.value = signaturePad.toDataURL('image/png');
+    });
 
 });
 

@@ -41,25 +41,20 @@ class Vehiculo(models.Model):
     @property
     def estado_actual(self):
 
-        # Si ya fue entregado
-        if hasattr(self, 'entrega'):
+        # Entregado (OneToOne real)
+        if hasattr(self, 'entrega') and self.entrega:
             return "Entregado"
 
         tareas = self.tareas.all()
 
-        # No tiene tareas
         if not tareas.exists():
             return "Ingresado"
 
-        # Tiene tareas pendientes o en proceso
-        if tareas.filter(
-            estado__in=['Pendiente', 'En Proceso']
-        ).exists():
+        if tareas.filter(estado__in=['Pendiente', 'En Proceso']).exists():
             return "En Reparación"
 
-        # Todas las tareas están finalizadas
         return "Finalizado"
-        
+            
 
     def __str__(self):
         return f"{self.placa} - {self.marca}"
@@ -191,30 +186,7 @@ class Tarea(models.Model):
     
 #tareas finalizadas
 
-class TareaFinalizada(models.Model):
 
-    tarea = models.OneToOneField(
-        'Tarea',
-        on_delete=models.CASCADE,
-        related_name='finalizacion',
-        null=False,
-        blank=False
-    )
-
-    vehiculo = models.CharField(max_length=20)
-    descripcion = models.CharField(max_length=255)
-    tecnico = models.CharField(max_length=150)
-
-    fecha_creacion = models.DateTimeField()
-    fecha_finalizacion = models.DateTimeField()
-
-    observaciones = models.TextField(
-        blank=True,
-        null=True
-    )
-
-    def __str__(self):
-        return f"{self.descripcion} - {self.vehiculo}"
     
     
 #Tareas eliminadas

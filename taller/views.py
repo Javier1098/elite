@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vehiculo, Tarea, TareaEliminada, ImagenTarea, TareaFinalizada, EntregaVehiculo
+from .models import Vehiculo, Tarea, TareaEliminada, ImagenTarea, EntregaVehiculo
 from .forms import TareaForm
 from .forms import VehiculoForm, EntregaVehiculoForm
 from django.contrib.auth import authenticate, login, logout
@@ -27,6 +27,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Q, Case, When, Value, IntegerField
 
 
 
@@ -49,6 +50,8 @@ def tecnicos (request):
 #Vista lista de vehiculos creados
 #----------------------------------
 
+from django.db.models import OuterRef, Subquery, Exists
+
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def lista_vehiculos(request):
@@ -61,21 +64,61 @@ def lista_vehiculos(request):
         vehiculos = vehiculos.filter(
             Q(placa__icontains=busqueda) |
             Q(propietario__icontains=busqueda) |
-            Q(marca__icontains=busqueda) |
-            Q(color__icontains=busqueda) |
-            Q(telefono__icontains=busqueda) |
-            Q(Correo__icontains=busqueda)
+            Q(marca__icontains=busqueda)
         )
 
-    return render(
-        request,
-        'vehiculos/lista.html',
-        {
-            'vehiculos': vehiculos,
-            'busqueda': busqueda
-        }
-    )
+    # 🔥 EVITAR DUPLICADOS POR JOIN
+    vehiculos = vehiculos.annotate(
+        tiene_tareas=Exists(
+            Tarea.objects.filter(vehiculo=OuterRef('pk'))
+        ),
+        tiene_pendientes=Exists(
+            Tarea.objects.filter(
+                vehiculo=OuterRef('pk'),
+                estado__in=['Pendiente', 'En Proceso']
+            )
+        ),
+        tiene_finalizadas=Exists(
+            Tarea.objects.filter(
+                vehiculo=OuterRef('pk'),
+                estado='Finalizada'
+            )
+        ),
+        tiene_entrega=Exists(
+            EntregaVehiculo.objects.filter(vehiculo=OuterRef('pk'))
+        )
+    ).annotate(
+        orden_estado=Case(
+            When(tiene_entrega=True, then=Value(3)),
+            When(tiene_pendientes=True, then=Value(1)),
+            When(tiene_tareas=False, then=Value(0)),
+            default=Value(2),
+            output_field=IntegerField()
+        )
+    ).order_by('orden_estado', '-fecha_ingreso')
+
+    return render(request, 'vehiculos/lista.html', {
+        'vehiculos': vehiculos,
+        'busqueda': busqueda
+    })
     
+#==============================
+#Función de estados
+#=============================
+
+
+def get_estado(self):
+    if hasattr(self, 'entrega') and self.entrega:
+        return 3
+
+    if not self.tareas.exists():
+        return 0
+
+    if self.tareas.filter(estado__in=['Pendiente', 'En Proceso']).exists():
+        return 1
+
+    return 2
+
 #--------------------------
 #Funcion de crear cliente
 #--------------------------
@@ -292,68 +335,36 @@ def crear_tarea(request, placa):
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Tecnico').exists())
 def editar_tarea(request, id):
-    
-    
 
     tarea = get_object_or_404(Tarea, id=id)
-    
+
     if tarea.vehiculo.estado_actual == 'Entregado':
-        messages.error(
-            request,
-            'No se pueden editar tareas de vehículos entregados.'
-        )
+        messages.error(request, 'No se pueden editar tareas de vehículos entregados.')
         return redirect('lista_tareas')
 
     if request.method == 'POST':
 
-        form = TareaForm(
-            request.POST,
-            instance=tarea
-        )
-
+        form = TareaForm(request.POST, instance=tarea)
         archivos = request.FILES.getlist('imagenes')
 
         if form.is_valid():
 
             tarea_editada = form.save(commit=False)
 
-            # Si se finaliza por primera vez
+            # 🔥 SOLO si cambia a finalizada
             if (
                 tarea_editada.estado == 'Finalizada'
                 and not tarea.fecha_finalizacion
             ):
-
                 tarea_editada.fecha_finalizacion = timezone.now()
-
-                tarea_editada.observaciones_finalizacion = (
-                    request.POST.get(
-                        'observaciones_finalizacion'
-                    )
+                tarea_editada.observaciones_finalizacion = request.POST.get(
+                    'observaciones_finalizacion', ''
                 )
 
             tarea_editada.save()
 
-            # Crear historial una sola vez
-            if (
-                tarea_editada.estado == 'Finalizada'
-                and not TareaFinalizada.objects.filter(
-                    tarea=tarea_editada
-                ).exists()
-            ):
-
-                TareaFinalizada.objects.create(
-                    tarea=tarea_editada,
-                    vehiculo=tarea_editada.vehiculo.placa,
-                    descripcion=tarea_editada.descripcion,
-                    tecnico=tarea_editada.tecnico.username,
-                    fecha_creacion=tarea_editada.fecha_creacion,
-                    fecha_finalizacion=tarea_editada.fecha_finalizacion,
-                    observaciones=tarea_editada.observaciones_finalizacion
-                )
-
-            # Guardar imágenes
+            # 📷 imágenes
             for archivo in archivos:
-
                 ImagenTarea.objects.create(
                     tarea=tarea_editada,
                     imagen=archivo
@@ -362,39 +373,14 @@ def editar_tarea(request, id):
             return redirect('lista_tareas')
 
     else:
+        form = TareaForm(instance=tarea)
 
-        form = TareaForm(
-            instance=tarea
-        )
-
-    return render(
-        request,
-        'tecnicos/form_tarea.html',
-        {
-            'form': form,
-            'tarea': tarea,
-            'vehiculo': tarea.vehiculo,
-            'editar': True
-        }
-    )
-    
-#----------------------------    
-#Lista de tareas finalizadas
-#----------------------------
-
-@login_required
-@user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
-def lista_tareas_finalizadas(request):
-
-    tareas = TareaFinalizada.objects.all()\
-        .order_by('-fecha_finalizacion')
-
-    return render(
-        request,
-        'administrativo/tareas_finalizadas.html',
-        {'tareas': tareas}
-    )    
-    
+    return render(request, 'tecnicos/form_tarea.html', {
+        'form': form,
+        'tarea': tarea,
+        'vehiculo': tarea.vehiculo,
+        'editar': True
+    })
 #----------------------------    
 #Funcion eliminar tareas 
 #----------------------------
@@ -792,27 +778,41 @@ def informe_tareas_excel(request):
 
 #Vista de vehiculos eliminados
 
-
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
 def historial_eliminados(request):
 
+    busqueda = request.GET.get('q', '')
+
     historial = VehiculoEliminado.objects.select_related(
         'usuario'
-    ).order_by('-fecha')
+    )
+
+    if busqueda:
+        historial = historial.filter(
+            Q(placa__icontains=busqueda) |
+            Q(motivo__icontains=busqueda)
+        )
+
+    historial = historial.order_by('-fecha')
 
     return render(
         request,
         'administrativo/historial_eliminados.html',
-        {'historial': historial}
+        {
+            'historial': historial,
+            'busqueda': busqueda
+        }
     )
-
 
 #lista clientes en el panel administrativos
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 
+
+
+from django.db.models import Q
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
@@ -826,10 +826,7 @@ def lista_vehiculos_admin(request):
         vehiculos = vehiculos.filter(
             Q(placa__icontains=busqueda) |
             Q(propietario__icontains=busqueda) |
-            Q(marca__icontains=busqueda) |
-            Q(color__icontains=busqueda) |
-            Q(telefono__icontains=busqueda) |
-            Q(Correo__icontains=busqueda)
+            Q(marca__icontains=busqueda)
         )
 
     return render(
@@ -840,41 +837,109 @@ def lista_vehiculos_admin(request):
             'busqueda': busqueda
         }
     )
-
 #lista de tareas eliminadas
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
 def historial_tareas_eliminadas(request):
 
-    tareas = TareaEliminada.objects.select_related(
-        'usuario'
-    ).order_by('-fecha')
+    busqueda = request.GET.get('q', '')
+
+    tareas = TareaEliminada.objects.all()
+
+    if busqueda:
+        tareas = tareas.filter(
+            Q(vehiculo__icontains=busqueda) |
+            Q(descripcion__icontains=busqueda)
+        )
 
     return render(
         request,
         'administrativo/historial_tareas_eliminadas.html',
-        {'tareas': tareas}
+        {
+            'tareas': tareas,
+            'busqueda': busqueda
+        }
     )
     
 # Lista de los estados de las tareas en vistas administrativa
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
+
 def lista_tareas_admin(request):
+
+    busqueda = request.GET.get('q', '')
 
     tareas = Tarea.objects.select_related(
         'vehiculo',
         'tecnico'
-    ).order_by('-fecha_actualizacion')
+    )
+
+    if busqueda:
+        tareas = tareas.filter(
+            Q(vehiculo__placa__icontains=busqueda) |
+            Q(descripcion__icontains=busqueda)
+        )
 
     return render(
         request,
         'administrativo/lista_tareas_admin.html',
-        {'tareas': tareas}
+        {
+            'tareas': tareas,
+            'busqueda': busqueda
+        }
     )
     
-    
+    #----------------------------    
+#Lista de tareas finalizadas
+#----------------------------
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
+def lista_tareas_finalizadas(request):
+
+    busqueda = request.GET.get('q', '')
+
+    tareas = Tarea.objects.filter(estado='Finalizada').select_related(
+        'vehiculo',
+        'tecnico'
+    )
+
+    if busqueda:
+        tareas = tareas.filter(
+            Q(vehiculo__placa__icontains=busqueda) |
+            Q(descripcion__icontains=busqueda) |
+            Q(tecnico__username__icontains=busqueda)
+        )
+
+    return render(request, 'administrativo/tareas_finalizadas.html', {
+        'tareas': tareas,
+        'busqueda': busqueda
+    })
+
+
+#
+#Vista de entrega de vehiculo
+#
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Administrativo').exists())
+def ver_entrega(request, placa):
+
+    entrega = get_object_or_404(
+        EntregaVehiculo,
+        vehiculo__placa=placa
+    )
+
+    return render(
+        request,
+        'administrativo/entrega_detalle.html',
+        {
+            'entrega': entrega
+        }
+    )
+          
+#vista de imagenes   
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name__in=['Tecnico', 'Administrativo']).exists())
 
@@ -895,11 +960,10 @@ def imagenes_tarea(request, tarea_id):
     
     
 def imagenes_tarea_finalizada(request, id):
-    tarea_finalizada = TareaFinalizada.objects.get(id=id)
-
-    imagenes = tarea_finalizada.tarea.imagenes.all()
+    tarea = get_object_or_404(Tarea, id=id)
+    imagenes = tarea.imagenes.all()
 
     return render(request, 'administrativo/imagenes_tarea_admin.html', {
-        'tarea': tarea_finalizada.tarea,
+        'tarea': tarea,
         'imagenes': imagenes
     })

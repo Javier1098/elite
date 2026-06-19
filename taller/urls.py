@@ -39,6 +39,8 @@ urlpatterns = [
     path('Tareas_eliminadas/', views.historial_tareas_eliminadas, name= 'lista_tareas_eliminadas'),
     path('administrativo/tareas/',views.lista_tareas_admin,name='lista_tareas_admin'),
     path('tareas-finalizadas/',views.lista_tareas_finalizadas,name='lista_tareas_finalizadas'),
+    path('entrega/<str:placa>/', views.ver_entrega, name='ver_entrega'),
+
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

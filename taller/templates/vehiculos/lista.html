@@ -24,6 +24,12 @@
 .btn-accion:disabled{
     width: 110px;
 }
+
+#filtroEstado{
+    width: 200px;      /* tamaño más pequeño */
+    font-size: 0.85rem; /* texto más compacto */
+    padding: 4px 10px;  /* reduce altura */
+}
 </style>
 
 <div class="container-fluid py-4">
@@ -45,10 +51,18 @@
 
 <div class="card shadow-sm border-0">
 <div class="card-body">
+<select id="filtroEstado" class="form-select mb-3">
+    <option value="">Todos</option>
+    <option value="Ingresado">Ingresado</option>
+    <option value="En Reparación">En Reparación</option>
+    <option value="Finalizado">Finalizado</option>
+    <option value="Entregado">Entregado</option>
+</select>
+
 
     <!-- Tabla -->
     <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
+        <table id="tablaVehiculos" class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>Placa</th>
@@ -56,7 +70,7 @@
                     <th>Modelo</th>
                     <th>Color</th>
                     <th>Propietario</th>
-                    <!--<th>ID</th> -->
+                   <!-- <th>ID</th> -->
                     <th>Teléfono</th>
                     <!--<th>Correo</th> -->
                     <!-- <th>Diagnóstico</th> -->
@@ -71,13 +85,13 @@
 
             <tbody>
                 {% for v in vehiculos %}
-                <tr>
+                <tr class="fila-vehiculo">
                     <td><strong>{{ v.placa }}</strong></td>
                     <td>{{ v.marca }}</td>
                     <td>{{ v.modelo }}</td>
                     <td>{{ v.color }}</td>
                     <td>{{ v.propietario }}</td>
-                    <!-- <td>{{ v.ID }}</td> -->
+                    <!--<td>{{ v.ID }}</td> -->
                     <td>{{ v.telefono }}</td>
                     <!-- <td>{{ v.correo }}</td> -->
                     <!--<td>{{ v.diagnostico }}</td> -->
@@ -99,23 +113,23 @@
 
                     <td>
                         {% if v.estado_actual == 'Ingresado' %}
-                            <span class="badge estado-badge" style="background:#55616b;">
+                            <span class="badge estado-badge estado" style="background:#55616b;"></span>
                                 Ingresado
                             </span>
 
                         {% elif v.estado_actual == 'En Reparación' %}
-                            <span class="badge estado-badge" style="background:#f6ef64;">
+                            <span class="badge estado-badge estado" style="background:#f6ef64;">
                                 En Reparación
                             </span>
 
                         {% elif v.estado_actual == 'Finalizado' %}
-                            <span class="badge estado-badge" style="background:#3a6854;">
+                            <span class="badge estado-badge estado" style="background:#3a6854;">
                                 Finalizado
                             </span>
                        
 
                         {% elif v.estado_actual == 'Entregado' %}
-                            <span class="badge estado-badge" style="background:#0d6efd;">
+                            <span class="badge estado-badge estado" style="background:#0d6efd;">
                                 Entregado
                             </span>
                         {% endif %}
@@ -262,5 +276,33 @@
 
 <div class="card shadow-sm border-0">
 <div class="card-body">
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const filtroEstado = document.getElementById('filtroEstado');
+
+    filtroEstado.addEventListener('change', function () {
+
+        const estadoFiltro = this.value.trim().toUpperCase();
+
+        document.querySelectorAll('.fila-vehiculo').forEach(function(fila) {
+
+            const estado = fila.querySelector('.estado')
+                .innerText
+                .trim()
+                .toUpperCase();
+
+            fila.style.display =
+                (estadoFiltro === '' || estado === estadoFiltro)
+                ? ''
+                : 'none';
+        });
+
+    });
+
+});
+</script>
 
 {% endblock %}

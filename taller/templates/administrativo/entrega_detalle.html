@@ -1,0 +1,60 @@
+{% extends 'administrativo/base_admin.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h3>📄 Formato de Entrega del Vehículo</h3>
+        </div>
+
+        <div class="card-body">
+
+            <p><strong>Placa:</strong> {{ entrega.vehiculo.placa }}</p>
+            <p><strong>Propietario:</strong> {{ entrega.vehiculo.propietario }}</p>
+            <p><strong>Técnico:</strong> {{ entrega.tecnico.username }}</p>
+            <p><strong>Fecha:</strong> {{ entrega.fecha_entrega }}</p>
+
+            <hr>
+
+            <p><strong>Recibe:</strong> {{ entrega.nombre_recibe }}</p>
+            <p><strong>Identificación:</strong> {{ entrega.identificacion_recibe }}</p>
+            <p><strong>Celular:</strong> {{ entrega.celular_recibe }}</p>
+
+            <p><strong>Estado Pago:</strong> {{ entrega.estado_pago }}</p>
+
+            <hr>
+
+            <!-- IMAGEN DE ENTREGA -->
+            {% if entrega.imagen_entrega %}
+                <p><strong>Foto de entrega:</strong></p>
+                <img src="{{ entrega.imagen_entrega.url }}"
+                     class="img-fluid mt-2"
+                     style="max-width:300px; border:1px solid #ccc;">
+            {% endif %}
+
+            <hr>
+
+            <!-- FIRMA DIGITAL -->
+            <p><strong>Firma del cliente:</strong></p>
+
+            {% if entrega.firma_recibe %}
+                <img src="{{ entrega.firma_recibe }}"
+                     style="max-width:300px;
+                            border:1px solid #ccc;
+                            background:#fff;
+                            display:block;
+                            margin-top:10px;">
+            {% else %}
+                <p class="text-muted">Sin firma registrada</p>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

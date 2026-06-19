@@ -27,5 +27,7 @@ urlpatterns = [
     path('accounts/login/', login_view, name='login'),
     path('', include('taller.urls')), 
     path('',include('Inicio.urls')),
+    path('clientes/', include('clientes.urls')),
+
 ]
 
